@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lotería Virtual</title>
+    <style>
+        :root {
+            --primary-color: #ff3b3b;
+            --bg-color: #f7f1e3;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* Pantalla de inicio */
+        #login-screen {
+            background-color: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        #login-screen h1 {
+            margin-top: 0;
+            color: var(--primary-color);
+            font-size: 2.5rem;
+        }
+
+        #name-input {
+            width: 100%;
+            padding: 12px;
+            margin: 20px 0;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        #name-input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.3s;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background-color: #e63535;
+            transform: scale(1.02);
+        }
+
+        /* Pantalla de juego */
+        #game-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            width: 100%;
+        }
+
+        #player-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #2c3e50;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Tablero de Lotería */
+        #board-container {
+            background-image: url('https://files.catbox.moe/5w6ny9.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            padding: 6%; /* Espacio para que coincida con los bordes de la imagen de fondo */
+            border-radius: 12px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.25);
+            max-width: 600px;
+            width: 90vw;
+            aspect-ratio: 3 / 4; /* Proporción típica de las tablas de lotería */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            gap: 10px;
+            width: 100%;
+            height: 100%;
+        }
+
+        .card {
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            border-radius: 6px;
+            cursor: pointer;
+            position: relative;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            transition: transform 0.1s;
+            background-color: white; /* Por si la imagen tarda en cargar */
+        }
+
+        .card:active {
+            transform: scale(0.95);
+        }
+
+        /* Estilo al tachar la carta */
+        .card.marked::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 0, 0, 0.4);
+            border-radius: 6px;
+        }
+
+        .card.marked::before {
+            content: '❌';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: clamp(1.5rem, 4vw, 3rem);
+            z-index: 2;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+        }
+
+        /* Modal de Victoria */
+        #win-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            color: white;
+            text-align: center;
+        }
+
+        #win-modal h2 {
+            font-size: 4rem;
+            margin: 0;
+            color: #ffd700;
+            text-shadow: 2px 2px 10px rgba(255, 215, 0, 0.5);
+            animation: pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #win-modal p {
+            font-size: 2rem;
+            margin-top: 10px;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Responsive para móviles pequeños */
+        @media (max-width: 480px) {
+            #board { gap: 5px; }
+            #board-container { padding: 5%; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Pantalla de inicio -->
+    <div id="login-screen">
+        <h1>¡Lotería!</h1>
+        <p>Ingresa tu nombre para comenzar a jugar con tus 16 cartas aleatorias.</p>
+        <input type="text" id="name-input" placeholder="Tu Nombre..." autocomplete="off">
+        <button class="btn" onclick="startGame()">Jugar</button>
+    </div>
+
+    <!-- Pantalla de juego -->
+    <div id="game-screen">
+        <div id="player-title"></div>
+        <div id="board-container">
+            <div id="board"></div>
+        </div>
+    </div>
+
+    <!-- Mensaje de victoria -->
+    <div id="win-modal">
+        <h2>¡Lotería!</h2>
+        <p id="win-message-text"></p>
+        <button class="btn" style="width: auto; margin-top: 30px; background-color: white; color: black;" onclick="location.reload()">Jugar de nuevo</button>
+    </div>
+
+    <!-- Audio (Se reproduce al dar clic en Jugar) -->
+    <audio id="bg-music" src="https://assets.cdn.filesafe.space/orLNFmqquwQDs4QXcbfS/media/6a7660dd7a46c6dc51b79db5.mp3" loop preload="auto"></audio>
+
+    <script>
+        // Array con las 64 tarjetas
+        const cardUrls = [
+            "https://files.catbox.moe/ll9zq6.png", "https://files.catbox.moe/imci9o.png", "https://files.catbox.moe/2wix8i.png", 
+            "https://files.catbox.moe/kx4qwd.png", "https://files.catbox.moe/jhm2u1.png", "https://files.catbox.moe/updh0u.png", 
+            "https://files.catbox.moe/mfcmip.png", "https://files.catbox.moe/70nsn9.png", "https://files.catbox.moe/55c2m6.png", 
+            "https://files.catbox.moe/jde5y5.png", "https://files.catbox.moe/8yzrtl.png", "https://files.catbox.moe/hbhyc9.png", 
+            "https://files.catbox.moe/2qig1u.png", "https://files.catbox.moe/n1vltb.png", "https://files.catbox.moe/lvcjzf.png", 
+            "https://files.catbox.moe/yi4nkn.png", "https://files.catbox.moe/ic1ybg.png", "https://files.catbox.moe/71tig7.png", 
+            "https://files.catbox.moe/sq4jaf.png", "https://files.catbox.moe/xa26az.png", "https://files.catbox.moe/ev2s63.png", 
+            "https://files.catbox.moe/ome9ud.png", "https://files.catbox.moe/gzagpq.png", "https://files.catbox.moe/85vwvz.png", 
+            "https://files.catbox.moe/kwxgsq.png", "https://files.catbox.moe/ispuo2.png", "https://files.catbox.moe/rr7qzw.png", 
+            "https://files.catbox.moe/fe7oj6.png", "https://files.catbox.moe/wcncjc.png", "https://files.catbox.moe/9efqwy.png", 
+            "https://files.catbox.moe/1qzd29.png", "https://files.catbox.moe/0fidjy.png", "https://files.catbox.moe/nzt0ym.png", 
+            "https://files.catbox.moe/a1cb98.png", "https://files.catbox.moe/bn6pu4.png", "https://files.catbox.moe/36t1x6.png", 
+            "https://files.catbox.moe/zeb359.png", "https://files.catbox.moe/p75ba0.png", "https://files.catbox.moe/w4j2zq.png", 
+            "https://files.catbox.moe/ozom8i.png", "https://files.catbox.moe/b53bt0.png", "https://files.catbox.moe/b4rcu7.png", 
+            "https://files.catbox.moe/33f123.png", "https://files.catbox.moe/xffeal.png", "https://files.catbox.moe/8nf3io.png", 
+            "https://files.catbox.moe/3jblob.png", "https://files.catbox.moe/omtb6n.png", "https://files.catbox.moe/n481uz.png", 
+            "https://files.catbox.moe/mck8vv.png", "https://files.catbox.moe/dl689t.png", "https://files.catbox.moe/kd1sbe.png", 
+            "https://files.catbox.moe/a2ephp.png", "https://files.catbox.moe/es7cfb.png", "https://files.catbox.moe/8g91ni.png", 
+            "https://files.catbox.moe/1axce8.png", "https://files.catbox.moe/ex2uqe.png", "https://files.catbox.moe/rjnhg8.png", 
+            "https://files.catbox.moe/j6nukf.png", "https://files.catbox.moe/qq3u36.png", "https://files.catbox.moe/c2hj9l.png", 
+            "https://files.catbox.moe/3br3yw.png", "https://files.catbox.moe/wnrfsk.png", "https://files.catbox.moe/phb7up.png", 
+            "https://files.catbox.moe/dipx8w.png"
+        ];
+
+        let playerName = "";
+        let markedCards = 0;
+
+        // Iniciar el juego
+        function startGame() {
+            const input = document.getElementById('name-input').value.trim();
+            if (input === "") {
+                alert("Por favor, ingresa tu nombre para jugar.");
+                return;
+            }
+            
+            playerName = input;
+            
+            // Ocultar inicio, mostrar juego
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'flex';
+            document.getElementById('player-title').innerText = `Tabla de ${playerName}`;
+
+            // Iniciar música
+            const audio = document.getElementById('bg-music');
+            audio.volume = 0.5; // Ajustar volumen si es necesario
+            audio.play().catch(error => console.log("El navegador bloqueó el autoplay."));
+
+            generateBoard();
+        }
+
+        // Seleccionar aleatoriamente 16 cartas únicas
+        function generateBoard() {
+            // Algoritmo de Fisher-Yates para mezclar el array original
+            let shuffled = [...cardUrls];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+
+            // Tomar las primeras 16
+            const selectedCards = shuffled.slice(0, 16);
+            
+            const boardElement = document.getElementById('board');
+            boardElement.innerHTML = ''; // Limpiar por si acaso
+
+            selectedCards.forEach(url => {
+                const cardDiv = document.createElement('div');
+                cardDiv.className = 'card';
+                cardDiv.style.backgroundImage = `url('${url}')`;
+                
+                // Evento para tachar la carta
+                cardDiv.addEventListener('click', function() {
+                    if (!this.classList.contains('marked')) {
+                        this.classList.add('marked');
+                        markedCards++;
+                        checkWin();
+                    } else {
+                        // Permite desmarcar si hubo un error (opcional pero útil)
+                        this.classList.remove('marked');
+                        markedCards--;
+                    }
+                });
+
+                boardElement.appendChild(cardDiv);
+            });
+        }
+
+        // Verificar si el jugador ya marcó las 16 cartas
+        function checkWin() {
+            if (markedCards === 16) {
+                // Pequeño retraso para que se alcance a ver la última marca antes de la alerta
+                setTimeout(() => {
+                    document.getElementById('win-message-text').innerText = `¡Ganaste ${playerName}!`;
+                    document.getElementById('win-modal').style.display = 'flex';
+                    // Detener la música si lo deseas
+                    // document.getElementById('bg-music').pause(); 
+                }, 300);
+            }
+        }
+    </script>
+</body>
+</html>
