@@ -78,31 +78,34 @@
             display: none;
             flex-direction: column;
             align-items: center;
-            padding: 20px;
+            padding: 10px;
             width: 100%;
+            box-sizing: border-box;
         }
 
         #player-title {
             font-size: 1.8rem;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             font-weight: bold;
             color: #2c3e50;
             text-transform: uppercase;
             letter-spacing: 2px;
+            text-align: center;
         }
 
         /* Tablero de Lotería */
         #board-container {
-            background-image: url('https://files.catbox.moe/5w6ny9.png');
-            background-size: cover;
+            /* NUEVA IMAGEN DE FONDO */
+            background-image: url('https://assets.cdn.filesafe.space/orLNFmqquwQDs4QXcbfS/media/6a76683c5daf7c89b9108532.png');
+            background-size: 100% 100%; /* Fuerza a que el fondo abarque todo el contenedor sin perderse en móviles */
             background-position: center;
             background-repeat: no-repeat;
-            padding: 6%; /* Espacio para que coincida con los bordes de la imagen de fondo */
+            /* El padding empuja las cartas hacia el centro de la plantilla para que no pisen los bordes del diseño */
+            padding: 8% 6% 6% 6%; 
             border-radius: 12px;
             box-shadow: 0 15px 35px rgba(0,0,0,0.25);
             max-width: 600px;
-            width: 90vw;
-            aspect-ratio: 3 / 4; /* Proporción típica de las tablas de lotería */
+            width: 95vw; /* Usa casi todo el ancho en móviles */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -111,14 +114,13 @@
         #board {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            grid-template-rows: repeat(4, 1fr);
-            gap: 10px;
+            gap: 8px; /* Espacio entre cartas */
             width: 100%;
-            height: 100%;
         }
 
         .card {
-            background-size: cover;
+            aspect-ratio: 1 / 1; /* ESTO ES CLAVE: Mantiene la proporción cuadrada 500x500 exacta */
+            background-size: contain; /* Garantiza que la imagen no se recorte bajo ninguna circunstancia */
             background-position: center;
             background-repeat: no-repeat;
             border-radius: 6px;
@@ -126,7 +128,7 @@
             position: relative;
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
             transition: transform 0.1s;
-            background-color: white; /* Por si la imagen tarda en cargar */
+            background-color: white; 
         }
 
         .card:active {
@@ -148,7 +150,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: clamp(1.5rem, 4vw, 3rem);
+            font-size: clamp(1.5rem, 5vw, 3rem);
             z-index: 2;
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
         }
@@ -185,10 +187,10 @@
             100% { transform: scale(1); opacity: 1; }
         }
 
-        /* Responsive para móviles pequeños */
+        /* Ajustes extra para pantallas muy pequeñas */
         @media (max-width: 480px) {
             #board { gap: 5px; }
-            #board-container { padding: 5%; }
+            #player-title { font-size: 1.4rem; }
         }
     </style>
 </head>
@@ -267,7 +269,7 @@
 
             // Iniciar música
             const audio = document.getElementById('bg-music');
-            audio.volume = 0.5; // Ajustar volumen si es necesario
+            audio.volume = 0.5;
             audio.play().catch(error => console.log("El navegador bloqueó el autoplay."));
 
             generateBoard();
@@ -275,7 +277,7 @@
 
         // Seleccionar aleatoriamente 16 cartas únicas
         function generateBoard() {
-            // Algoritmo de Fisher-Yates para mezclar el array original
+            // Algoritmo de Fisher-Yates para mezclar
             let shuffled = [...cardUrls];
             for (let i = shuffled.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -286,7 +288,7 @@
             const selectedCards = shuffled.slice(0, 16);
             
             const boardElement = document.getElementById('board');
-            boardElement.innerHTML = ''; // Limpiar por si acaso
+            boardElement.innerHTML = ''; 
 
             selectedCards.forEach(url => {
                 const cardDiv = document.createElement('div');
@@ -300,7 +302,7 @@
                         markedCards++;
                         checkWin();
                     } else {
-                        // Permite desmarcar si hubo un error (opcional pero útil)
+                        // Permite desmarcar si hubo un error al tocar
                         this.classList.remove('marked');
                         markedCards--;
                     }
@@ -313,12 +315,9 @@
         // Verificar si el jugador ya marcó las 16 cartas
         function checkWin() {
             if (markedCards === 16) {
-                // Pequeño retraso para que se alcance a ver la última marca antes de la alerta
                 setTimeout(() => {
                     document.getElementById('win-message-text').innerText = `¡Ganaste ${playerName}!`;
                     document.getElementById('win-modal').style.display = 'flex';
-                    // Detener la música si lo deseas
-                    // document.getElementById('bg-music').pause(); 
                 }, 300);
             }
         }
