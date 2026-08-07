@@ -2,35 +2,47 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Lotería Virtual</title>
+    <!-- Fuente divertida y legible de Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&display=swap" rel="stylesheet">
+    
     <style>
         :root {
             --primary-color: #ff3b3b;
-            --bg-color: #f7f1e3;
         }
 
         body {
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
+            font-family: 'Fredoka', sans-serif; /* Usando la fuente divertida */
+            /* Patrón de líneas diagonales con los dos azules solicitados */
+            background: repeating-linear-gradient(
+                45deg,
+                #92d8e7,
+                #92d8e7 20px,
+                #5dcae2 20px,
+                #5dcae2 40px
+            );
+            /* Evita que se pueda scrollear, todo cabe en la pantalla */
+            height: 100dvh; 
+            width: 100vw;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            overflow: hidden; 
             color: #333;
         }
 
         /* Pantalla de inicio */
         #login-screen {
             background-color: white;
-            padding: 40px;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
             text-align: center;
-            max-width: 400px;
-            width: 90%;
+            width: 85%;
+            max-width: 350px;
         }
 
         #login-screen h1 {
@@ -43,16 +55,13 @@
             width: 100%;
             padding: 12px;
             margin: 20px 0;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 1.1rem;
+            border: 3px solid #5dcae2;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-family: 'Fredoka', sans-serif;
             box-sizing: border-box;
             outline: none;
-            transition: border-color 0.3s;
-        }
-
-        #name-input:focus {
-            border-color: var(--primary-color);
+            text-align: center;
         }
 
         .btn {
@@ -60,88 +69,88 @@
             color: white;
             border: none;
             padding: 12px 30px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            border-radius: 8px;
+            font-size: 1.3rem;
+            font-family: 'Fredoka', sans-serif;
+            border-radius: 12px;
             cursor: pointer;
-            transition: transform 0.2s, background-color 0.3s;
             width: 100%;
+            box-shadow: 0 5px 0 #cc2e2e; /* Efecto botón 3D */
         }
-
-        .btn:hover {
-            background-color: #e63535;
-            transform: scale(1.02);
+        
+        .btn:active {
+            transform: translateY(5px);
+            box-shadow: 0 0px 0 #cc2e2e;
         }
 
         /* Pantalla de juego */
         #game-screen {
             display: none;
             flex-direction: column;
+            justify-content: space-between;
             align-items: center;
-            padding: 10px;
             width: 100%;
+            height: 100%;
+            padding: 15px 10px;
             box-sizing: border-box;
         }
 
+        /* Título superior */
         #player-title {
-            font-size: 1.8rem;
-            margin-bottom: 15px;
-            font-weight: bold;
-            color: #2c3e50;
-            text-transform: uppercase;
-            letter-spacing: 2px;
+            font-size: clamp(1.8rem, 7vw, 2.8rem);
+            color: #ffffff;
+            /* Contorno negro para que resalte sobre el fondo azul */
+            -webkit-text-stroke: 2px #2c3e50;
+            text-shadow: 3px 3px 0px #2c3e50;
+            margin: 10px 0 5px 0;
             text-align: center;
+            line-height: 1.1;
         }
 
-        /* Tablero de Lotería */
+        /* Contenedor del tablero (ajusta el tamaño automático) */
         #board-container {
-            /* NUEVA IMAGEN DE FONDO */
-            background-image: url('https://files.catbox.moe/5w6ny9.png');
-            background-size: 100% 100%; /* Fuerza a que el fondo abarque todo el contenedor sin perderse en móviles */
-            background-position: center;
-            background-repeat: no-repeat;
-            /* El padding empuja las cartas hacia el centro de la plantilla para que no pisen los bordes del diseño */
-            padding: 8% 6% 6% 6%; 
-            border-radius: 12px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.25);
-            max-width: 600px;
-            width: 95vw; /* Usa casi todo el ancho en móviles */
+            flex: 1;
             display: flex;
             justify-content: center;
             align-items: center;
+            width: 100%;
+            min-height: 0; /* Crucial para que no desborde en flexbox */
         }
 
+        /* Tablero 4x4 */
         #board {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 8px; /* Espacio entre cartas */
-            width: 100%;
+            grid-template-rows: repeat(4, 1fr);
+            gap: 6px;
+            /* Esta magia hace que sea cuadrado y quepa en CUALQUIER celular sin salirse */
+            width: 95vw;
+            height: 95vw;
+            max-width: 65vh; 
+            max-height: 65vh;
+            background: rgba(255, 255, 255, 0.4);
+            padding: 8px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
         }
 
         .card {
-            aspect-ratio: 1 / 1; /* ESTO ES CLAVE: Mantiene la proporción cuadrada 500x500 exacta */
-            background-size: contain; /* Garantiza que la imagen no se recorte bajo ninguna circunstancia */
+            background-color: white; 
+            background-size: contain;
             background-position: center;
             background-repeat: no-repeat;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             position: relative;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-            transition: transform 0.1s;
-            background-color: white; 
+            box-shadow: 0 3px 5px rgba(0,0,0,0.2);
         }
 
-        .card:active {
-            transform: scale(0.95);
-        }
-
-        /* Estilo al tachar la carta */
+        /* Tachar carta */
         .card.marked::after {
             content: '';
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background-color: rgba(0, 0, 0, 0.4);
-            border-radius: 6px;
+            background-color: rgba(0, 0, 0, 0.45);
+            border-radius: 8px;
         }
 
         .card.marked::before {
@@ -150,9 +159,19 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: clamp(1.5rem, 5vw, 3rem);
+            font-size: clamp(1.8rem, 7vw, 3rem);
             z-index: 2;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.6));
+        }
+
+        /* Texto inferior */
+        #footer-text {
+            font-size: clamp(1.1rem, 5vw, 1.5rem);
+            color: #ffffff;
+            -webkit-text-stroke: 1.5px #2c3e50;
+            text-shadow: 2px 2px 0px #2c3e50;
+            margin: 5px 0 15px 0;
+            text-align: center;
         }
 
         /* Modal de Victoria */
@@ -160,7 +179,7 @@
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.8);
+            background-color: rgba(0,0,0,0.85);
             z-index: 100;
             justify-content: center;
             align-items: center;
@@ -170,10 +189,10 @@
         }
 
         #win-modal h2 {
-            font-size: 4rem;
+            font-size: 3.5rem;
             margin: 0;
             color: #ffd700;
-            text-shadow: 2px 2px 10px rgba(255, 215, 0, 0.5);
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
             animation: pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
@@ -186,12 +205,6 @@
             0% { transform: scale(0.5); opacity: 0; }
             100% { transform: scale(1); opacity: 1; }
         }
-
-        /* Ajustes extra para pantallas muy pequeñas */
-        @media (max-width: 480px) {
-            #board { gap: 5px; }
-            #player-title { font-size: 1.4rem; }
-        }
     </style>
 </head>
 <body>
@@ -199,31 +212,32 @@
     <!-- Pantalla de inicio -->
     <div id="login-screen">
         <h1>¡Lotería!</h1>
-        <p>Ingresa tu nombre para comenzar a jugar con tus 16 cartas aleatorias.</p>
-        <input type="text" id="name-input" placeholder="Tu Nombre..." autocomplete="off">
-        <button class="btn" onclick="startGame()">Jugar</button>
+        <input type="text" id="name-input" placeholder="Escribe tu nombre..." autocomplete="off">
+        <button class="btn" onclick="startGame()">¡JUGAR!</button>
     </div>
 
     <!-- Pantalla de juego -->
     <div id="game-screen">
-        <div id="player-title"></div>
+        <div id="player-title">Lotería de <span id="p-name"></span></div>
+        
         <div id="board-container">
             <div id="board"></div>
         </div>
+
+        <div id="footer-text">Lotería Simple past irregular verbs</div>
     </div>
 
     <!-- Mensaje de victoria -->
     <div id="win-modal">
-        <h2>¡Lotería!</h2>
+        <h2>¡LOTERÍA!</h2>
         <p id="win-message-text"></p>
-        <button class="btn" style="width: auto; margin-top: 30px; background-color: white; color: black;" onclick="location.reload()">Jugar de nuevo</button>
+        <button class="btn" style="width: auto; margin-top: 30px; background-color: white; color: #ff3b3b;" onclick="location.reload()">Jugar de nuevo</button>
     </div>
 
-    <!-- Audio (Se reproduce al dar clic en Jugar) -->
-    <audio id="bg-music" src="https://assets.cdn.filesafe.space/orLNFmqquwQDs4QXcbfS/media/6a76695e8880872019b9ae64.mp3" loop preload="auto"></audio>
+    <!-- Audio -->
+    <audio id="bg-music" src="https://assets.cdn.filesafe.space/orLNFmqquwQDs4QXcbfS/media/6a7660dd7a46c6dc51b79db5.mp3" loop preload="auto"></audio>
 
     <script>
-        // Array con las 64 tarjetas
         const cardUrls = [
             "https://files.catbox.moe/ll9zq6.png", "https://files.catbox.moe/imci9o.png", "https://files.catbox.moe/2wix8i.png", 
             "https://files.catbox.moe/kx4qwd.png", "https://files.catbox.moe/jhm2u1.png", "https://files.catbox.moe/updh0u.png", 
@@ -252,41 +266,36 @@
         let playerName = "";
         let markedCards = 0;
 
-        // Iniciar el juego
         function startGame() {
             const input = document.getElementById('name-input').value.trim();
             if (input === "") {
-                alert("Por favor, ingresa tu nombre para jugar.");
+                alert("Por favor, ingresa tu nombre.");
                 return;
             }
             
             playerName = input;
             
-            // Ocultar inicio, mostrar juego
+            // Inyectar nombre en el título
+            document.getElementById('p-name').innerText = playerName;
+            
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('game-screen').style.display = 'flex';
-            document.getElementById('player-title').innerText = `Tabla de ${playerName}`;
 
-            // Iniciar música
             const audio = document.getElementById('bg-music');
             audio.volume = 0.5;
-            audio.play().catch(error => console.log("El navegador bloqueó el autoplay."));
+            audio.play().catch(error => console.log("Bloqueado autoplay de audio."));
 
             generateBoard();
         }
 
-        // Seleccionar aleatoriamente 16 cartas únicas
         function generateBoard() {
-            // Algoritmo de Fisher-Yates para mezclar
             let shuffled = [...cardUrls];
             for (let i = shuffled.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
             }
 
-            // Tomar las primeras 16
             const selectedCards = shuffled.slice(0, 16);
-            
             const boardElement = document.getElementById('board');
             boardElement.innerHTML = ''; 
 
@@ -295,14 +304,12 @@
                 cardDiv.className = 'card';
                 cardDiv.style.backgroundImage = `url('${url}')`;
                 
-                // Evento para tachar la carta
                 cardDiv.addEventListener('click', function() {
                     if (!this.classList.contains('marked')) {
                         this.classList.add('marked');
                         markedCards++;
                         checkWin();
                     } else {
-                        // Permite desmarcar si hubo un error al tocar
                         this.classList.remove('marked');
                         markedCards--;
                     }
@@ -312,7 +319,6 @@
             });
         }
 
-        // Verificar si el jugador ya marcó las 16 cartas
         function checkWin() {
             if (markedCards === 16) {
                 setTimeout(() => {
