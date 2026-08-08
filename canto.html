@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cantar Lotería - Irregular Verbs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #ff3b3b;
+            --secondary: #2ecc71;
+            --dark: #2c3e50;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Fredoka', sans-serif;
+            background: repeating-linear-gradient(
+                45deg,
+                #92d8e7,
+                #92d8e7 20px,
+                #5dcae2 20px,
+                #5dcae2 40px
+            );
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            color: var(--dark);
+        }
+
+        /* Pantalla de inicio */
+        #start-screen {
+            background-color: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            text-align: center;
+            width: 85%;
+            max-width: 400px;
+        }
+
+        #start-screen h1 {
+            color: var(--primary);
+            font-size: 2.5rem;
+            margin-top: 0;
+        }
+
+        /* Pantalla principal de juego */
+        #game-screen {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            max-width: 600px;
+            padding: 10px;
+            box-sizing: border-box;
+            justify-content: space-between;
+        }
+
+        /* Estadísticas / Contador */
+        .stats-bar {
+            background: white;
+            padding: 10px 15px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+        }
+
+        .stats-bar span {
+            color: var(--primary);
+        }
+
+        /* Contenedor de la carta */
+        .card-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 0; /* Permite que la imagen se reduzca en pantallas chicas */
+        }
+
+        #current-card-img {
+            max-width: 100%;
+            max-height: 40vh; /* Ocupa máximo el 40% de la altura de la pantalla */
+            object-fit: contain;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            background-color: white;
+            border: 5px solid white;
+            transition: transform 0.3s;
+        }
+
+        /* Zona de texto (La oración) */
+        .sentence-box {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 15px;
+            text-align: center;
+            font-size: clamp(1.2rem, 5vw, 1.6rem);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+            margin: 15px 0;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+        }
+
+        .blank-space {
+            border-bottom: 3px solid var(--dark);
+            display: inline-block;
+            min-width: 60px;
+            margin: 0 5px;
+        }
+
+        .revealed-verb {
+            color: var(--secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            text-decoration: underline;
+            margin: 0 5px;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* Controles inferiores */
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr 1fr;
+            gap: 10px;
+            width: 100%;
+            padding-bottom: 10px;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 12px;
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 15px 5px;
+            color: white;
+            box-shadow: 0 5px 0 rgba(0,0,0,0.2);
+            transition: transform 0.1s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .btn:active {
+            transform: translateY(5px);
+            box-shadow: 0 0px 0 rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled {
+            background-color: #a0a0a0 !important;
+            box-shadow: 0 5px 0 #7a7a7a !important;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-prev { background-color: #f39c12; box-shadow: 0 5px 0 #d68910; }
+        .btn-reveal { background-color: var(--secondary); box-shadow: 0 5px 0 #27ae60; }
+        .btn-next { background-color: var(--primary); box-shadow: 0 5px 0 #c0392b; }
+
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Pantalla de Inicio -->
+    <div id="start-screen">
+        <h1>¡Cantar Lotería!</h1>
+        <p style="font-size: 1.2rem;">Simple Past Irregular Verbs</p>
+        <button class="btn btn-next" style="width: 100%; margin-top: 20px; font-size: 1.3rem;" onclick="startGame()">Comenzar a Cantar</button>
+    </div>
+
+    <!-- Pantalla del Juego -->
+    <div id="game-screen">
+        
+        <!-- Contador -->
+        <div class="stats-bar">
+            <div>Tarjeta: <span id="current-count">0</span>/64</div>
+            <div>Faltan: <span id="remaining-count">64</span></div>
+        </div>
+
+        <!-- Carta -->
+        <div class="card-container">
+            <img id="current-card-img" src="" alt="Tarjeta de Lotería">
+        </div>
+
+        <!-- Oración -->
+        <div class="sentence-box" id="sentence-display">
+            <!-- El texto se inyecta por JS -->
+        </div>
+
+        <!-- Controles -->
+        <div class="controls">
+            <button class="btn btn-prev" id="btn-prev" onclick="prevCard()">⬅️ Atrás</button>
+            <button class="btn btn-reveal" id="btn-reveal" onclick="revealVerb()">Descubrir</button>
+            <button class="btn btn-next" id="btn-next" onclick="nextCard()">Siguiente ➡️</button>
+        </div>
+    </div>
+
+    <script>
+        // Base de datos completa con las 64 cartas, oraciones y respuestas.
+        // He corregido símbolos raros de texto (como ﬁ y ﬂ) para que se lea perfecto.
+        const deckData = [
+            { id: 1, img: "https://files.catbox.moe/j6nukf.png", sent: "Tom _________ angry two hours ago.", verb: "was" },
+            { id: 2, img: "https://files.catbox.moe/qq3u36.png", sent: "They _________ a huge house on the hill last year.", verb: "built" },
+            { id: 3, img: "https://files.catbox.moe/c2hj9l.png", sent: "She accidentally _________ her finger while cooking dinner.", verb: "cut" },
+            { id: 4, img: "https://files.catbox.moe/3br3yw.png", sent: "We _________ to the beach together last summer.", verb: "went" },
+            { id: 5, img: "https://files.catbox.moe/wnrfsk.png", sent: "He _________ a famous doctor after years of studying.", verb: "became" },
+            { id: 6, img: "https://files.catbox.moe/phb7up.png", sent: "I _________ the red shirt instead of the blue one.", verb: "chose" },
+            { id: 7, img: "https://files.catbox.moe/dipx8w.png", sent: "The new phone _________ a lot of money.", verb: "cost" },
+            { id: 8, img: "https://files.catbox.moe/kwxgsq.png", sent: "They _________ their keys on the kitchen table.", verb: "left" },
+            { id: 9, img: "https://files.catbox.moe/ispuo2.png", sent: "The concert _________ right on time at 8 PM.", verb: "began" },
+            { id: 10, img: "https://files.catbox.moe/rr7qzw.png", sent: "The goalkeeper _________ the ball in the last minute.", verb: "caught" },
+            { id: 11, img: "https://files.catbox.moe/fe7oj6.png", sent: "My best friend _________ to visit me yesterday.", verb: "came" },
+            { id: 12, img: "https://files.catbox.moe/wcncjc.png", sent: "We _________ our new neighbors at the community event.", verb: "met" },
+            { id: 13, img: "https://files.catbox.moe/9efqwy.png", sent: "He dropped his phone and _________ the screen.", verb: "broke" },
+            { id: 14, img: "https://files.catbox.moe/1qzd29.png", sent: "She _________ a beautiful new dress for the party.", verb: "bought" },
+            { id: 15, img: "https://files.catbox.moe/0fidjy.png", sent: "They _________ delicious snacks to the meeting.", verb: "brought" },
+            { id: 16, img: "https://files.catbox.moe/nzt0ym.png", sent: "I _________ all your letters in a secret box.", verb: "kept" },
+            { id: 17, img: "https://files.catbox.moe/a1cb98.png", sent: "She _________ all her homework before going to bed.", verb: "did" },
+            { id: 18, img: "https://files.catbox.moe/bn6pu4.png", sent: "The artist _________ a beautiful landscape in his notebook.", verb: "drew" },
+            { id: 19, img: "https://files.catbox.moe/36t1x6.png", sent: "They _________ two full glasses of water after running.", verb: "drank" },
+            { id: 20, img: "https://files.catbox.moe/zeb359.png", sent: "He _________ his new car to work yesterday morning.", verb: "drove" },
+            { id: 21, img: "https://files.catbox.moe/p75ba0.png", sent: "We _________ pizza at the restaurant last night.", verb: "ate" },
+            { id: 22, img: "https://files.catbox.moe/w4j2zq.png", sent: "The child _________ off his bicycle, but he was okay.", verb: "fell" },
+            { id: 23, img: "https://files.catbox.moe/ozom8i.png", sent: "I _________ very happy when I received the news.", verb: "felt" },
+            { id: 24, img: "https://files.catbox.moe/b53bt0.png", sent: "She _________ her lost ring under the sofa.", verb: "found" },
+            { id: 25, img: "https://files.catbox.moe/b4rcu7.png", sent: "The plane _________ high above the clouds.", verb: "flew" },
+            { id: 26, img: "https://files.catbox.moe/33f123.png", sent: "He _________ to lock the door before leaving.", verb: "forgot" },
+            { id: 27, img: "https://files.catbox.moe/xffeal.png", sent: "They _________ great grades on their final exam.", verb: "got" },
+            { id: 28, img: "https://files.catbox.moe/8nf3io.png", sent: "My sister _________ me a nice present for my birthday.", verb: "gave" },
+            { id: 29, img: "https://files.catbox.moe/3jblob.png", sent: "We _________ to the cinema to watch a new movie.", verb: "went" },
+            { id: 30, img: "https://files.catbox.moe/omtb6n.png", sent: "She _________ a small dog when she was a child.", verb: "had" },
+            { id: 31, img: "https://files.catbox.moe/n481uz.png", sent: "I _________ a strange noise outside last night.", verb: "heard" },
+            { id: 32, img: "https://files.catbox.moe/mck8vv.png", sent: "He _________ the baby carefully in his arms.", verb: "held" },
+            { id: 33, img: "https://files.catbox.moe/dl689t.png", sent: "The dog _________ its bone under the couch.", verb: "hid" },
+            { id: 34, img: "https://files.catbox.moe/kd1sbe.png", sent: "He _________ the baseball over the fence.", verb: "hit" },
+            { id: 35, img: "https://files.catbox.moe/a2ephp.png", sent: "She _________ all the answers on the exam.", verb: "knew" },
+            { id: 36, img: "https://files.catbox.moe/es7cfb.png", sent: "I _________ my favorite jacket at the mall.", verb: "lost" },
+            { id: 37, img: "https://files.catbox.moe/8g91ni.png", sent: "They _________ a huge mess in the kitchen.", verb: "made" },
+            { id: 38, img: "https://files.catbox.moe/1axce8.png", sent: "We _________ for the dinner with cash.", verb: "paid" },
+            { id: 39, img: "https://files.catbox.moe/ex2uqe.png", sent: "He _________ the keys back into his pocket.", verb: "put" },
+            { id: 40, img: "https://files.catbox.moe/rjnhg8.png", sent: "She _________ three entire books during the summer.", verb: "read" },
+            { id: 41, img: "https://files.catbox.moe/ll9zq6.png", sent: "They _________ their horses across the field.", verb: "rode" },
+            { id: 42, img: "https://files.catbox.moe/imci9o.png", sent: "The athlete _________ faster than ever in the final race.", verb: "ran" },
+            { id: 43, img: "https://files.catbox.moe/2wix8i.png", sent: "She _________ goodbye to everyone before leaving.", verb: "said" },
+            { id: 44, img: "https://files.catbox.moe/kx4qwd.png", sent: "We _________ a shooting star in the night sky.", verb: "saw" },
+            { id: 45, img: "https://files.catbox.moe/jhm2u1.png", sent: "He _________ his old bicycle to his neighbor.", verb: "sold" },
+            { id: 46, img: "https://files.catbox.moe/updh0u.png", sent: "I _________ an email to my boss this morning.", verb: "sent" },
+            { id: 47, img: "https://files.catbox.moe/mfcmip.png", sent: "The crowd _________ along during the concert.", verb: "sang" },
+            { id: 48, img: "https://files.catbox.moe/70nsn9.png", sent: "They _________ together on the bench to talk.", verb: "sat" },
+            { id: 49, img: "https://files.catbox.moe/55c2m6.png", sent: "They _________ for eight hours after the long trip.", verb: "slept" },
+            { id: 50, img: "https://files.catbox.moe/jde5y5.png", sent: "She _________ to the manager about the problem.", verb: "spoke" },
+            { id: 51, img: "https://files.catbox.moe/8yzrtl.png", sent: "We _________ all our money on vacation.", verb: "spent" },
+            { id: 52, img: "https://files.catbox.moe/hbhyc9.png", sent: "He _________ near the door waiting for the bus.", verb: "stood" },
+            { id: 53, img: "https://files.catbox.moe/2qig1u.png", sent: "I _________ a lot of photos during the concert.", verb: "took" },
+            { id: 54, img: "https://files.catbox.moe/n1vltb.png", sent: "The teacher _________ us an interesting story.", verb: "told" },
+            { id: 55, img: "https://files.catbox.moe/lvcjzf.png", sent: "She _________ a long letter to her best friend.", verb: "wrote" },
+            { id: 56, img: "https://files.catbox.moe/yi4nkn.png", sent: "They _________ very happy with the results.", verb: "were" },
+            { id: 57, img: "https://files.catbox.moe/ic1ybg.png", sent: "The small caterpillar _________ a beautiful butterfly.", verb: "became" },
+            { id: 58, img: "https://files.catbox.moe/71tig7.png", sent: "The movie _________ ten minutes late.", verb: "began" },
+            { id: 59, img: "https://files.catbox.moe/sq4jaf.png", sent: "Someone _________ the window with a rock.", verb: "broke" },
+            { id: 60, img: "https://files.catbox.moe/xa26az.png", sent: "He _________ an umbrella because it was raining.", verb: "brought" },
+            { id: 61, img: "https://files.catbox.moe/ev2s63.png", sent: "The workers _________ the new bridge in six months.", verb: "built" },
+            { id: 62, img: "https://files.catbox.moe/ome9ud.png", sent: "We _________ some fresh fruit at the market.", verb: "bought" },
+            { id: 63, img: "https://files.catbox.moe/gzagpq.png", sent: "The cat _________ a small mouse in the garden.", verb: "caught" },
+            { id: 64, img: "https://files.catbox.moe/85vwvz.png", sent: "She _________ the yellow team for the game.", verb: "chose" }
+        ];
+
+        let playHistory = []; // Aquí guardaremos el orden de las cartas aleatorias
+        let currentIndex = -1; // Índice actual en la historia
+
+        function startGame() {
+            // Revolver las cartas aleatoriamente
+            let shuffled = [...deckData];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            
+            // Añadir propiedad 'isRevealed' a cada carta
+            playHistory = shuffled.map(card => ({ ...card, isRevealed: false }));
+            currentIndex = 0;
+
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'flex';
+            
+            updateUI();
+        }
+
+        function updateUI() {
+            const card = playHistory[currentIndex];
+            
+            // Actualizar la Imagen
+            document.getElementById('current-card-img').src = card.img;
+
+            // Actualizar el Texto
+            const textContainer = document.getElementById('sentence-display');
+            if (card.isRevealed) {
+                textContainer.innerHTML = card.sent.replace("_________", `<span class="revealed-verb">${card.verb}</span>`);
+            } else {
+                textContainer.innerHTML = card.sent.replace("_________", `<span class="blank-space"></span>`);
+            }
+
+            // Actualizar Contadores
+            document.getElementById('current-count').innerText = (currentIndex + 1);
+            document.getElementById('remaining-count').innerText = (playHistory.length - (currentIndex + 1));
+
+            // Actualizar estado de los botones
+            document.getElementById('btn-prev').disabled = (currentIndex === 0);
+            document.getElementById('btn-reveal').disabled = card.isRevealed;
+            
+            if (currentIndex === playHistory.length - 1) {
+                document.getElementById('btn-next').innerText = "Terminar";
+                document.getElementById('btn-next').style.backgroundColor = "#8e44ad"; 
+            } else {
+                document.getElementById('btn-next').innerText = "Siguiente ➡️";
+                document.getElementById('btn-next').style.backgroundColor = "var(--primary)"; 
+            }
+        }
+
+        function revealVerb() {
+            playHistory[currentIndex].isRevealed = true;
+            updateUI();
+        }
+
+        function nextCard() {
+            if (currentIndex < playHistory.length - 1) {
+                currentIndex++;
+                updateUI();
+            } else {
+                alert("¡Se acabaron las cartas! Juego terminado.");
+            }
+        }
+
+        function prevCard() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateUI();
+            }
+        }
+    </script>
+</body>
+</html>
